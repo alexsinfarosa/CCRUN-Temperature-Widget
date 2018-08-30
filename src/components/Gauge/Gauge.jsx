@@ -13,12 +13,13 @@ const styles = theme => ({
   root: { flexGrow: 1 }
 });
 
-let height = 280;
-let width = 290;
+let height = 250;
+let width = 270;
 
 class Gauge extends Component {
   render() {
     const { gauge } = this.props;
+
     let cell;
     if (gauge) {
       cell = gauge.gaugeData.map((arc, index) => {
@@ -44,7 +45,7 @@ class Gauge extends Component {
           cx={width / 2}
           cy={height / 1.95}
           labelLine={false}
-          label={<PieLabels selectedIdx={gauge.active} />}
+          label={<PieLabels selectedIdx={gauge.active} type={gauge.type} />}
           innerRadius={60}
           outerRadius={110}
         >

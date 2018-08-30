@@ -9,7 +9,7 @@ import "rc-slider/assets/index.css";
 
 const styles = theme => ({
   root: {
-    height: 150
+    height: 200
   }
 });
 
@@ -18,7 +18,7 @@ class MySlider extends Component {
     const { setExtreemeValues } = this.props.appStore.paramsStore;
     const { sliderStyle } = this.props;
     return (
-      <Grid item xs={2} sm={2} style={{ height: 150 }}>
+      <Grid item style={{ width: 200 }}>
         <Slider
           handleStyle={{
             borderColor: "#843EA4",
@@ -29,7 +29,6 @@ class MySlider extends Component {
           dotStyle={{ borderColor: "#843EA4" }}
           activeDotStyle={{ borderColor: "#843EA4" }}
           trackStyle={{ background: "#843EA4" }}
-          vertical
           min={sliderStyle.min}
           marks={sliderStyle.marks}
           step={null}

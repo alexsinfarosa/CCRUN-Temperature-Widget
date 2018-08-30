@@ -14,11 +14,10 @@ import TimeSeries from "./TimeSeries";
 import { RingLoader } from "react-spinners";
 
 const styles = theme => ({
-  root: { flexGrowth: 1 },
-  widget: {
-    width: 360,
-    height: 290,
-    border: "1px solid #ddd"
+  root: {
+    flexGrowth: 1,
+    borderLeft: "2px solid #843EA4",
+    marginBottom: theme.spacing.unit * 4
   },
   button: {
     margin: 0,
@@ -52,21 +51,23 @@ class Rows extends Component {
 
     return (
       <div className={classes.root}>
-        <Typography variant="headline" style={{ color: "#797979" }}>
+        <Typography
+          variant="caption"
+          style={{ color: "#843EA4", marginLeft: 10 }}
+        >
           {type}
         </Typography>
         {row ? (
           <Grid container justify="space-around" alignItems="center">
             {row.map((gauge, i) => (
               <Grid item key={i}>
-                <Grid container alignItems="center" spacing={8}>
-                  {gauge.isSlider ? (
-                    <MySlider sliderStyle={gauge.sliderStyle} />
-                  ) : (
-                    <Grid item xs={2} sm={2} />
-                  )}
-
-                  <Grid item xs={2} sm={10}>
+                <Grid
+                  container
+                  alignItems="center"
+                  // spacing={2}
+                  style={{ flexDirection: "column", justifyContent: "center" }}
+                >
+                  <Grid item>
                     <button
                       className={classes.button}
                       onClick={() => {
@@ -76,6 +77,11 @@ class Rows extends Component {
                       <Gauge gauge={gauge} />
                     </button>
                   </Grid>
+                  {gauge.isSlider ? (
+                    <MySlider sliderStyle={gauge.sliderStyle} />
+                  ) : (
+                    <Grid item />
+                  )}
                 </Grid>
               </Grid>
             ))}
@@ -85,15 +91,13 @@ class Rows extends Component {
             {[1, 2, 3].map(n => (
               <Grid item key={n}>
                 <Grid container alignItems="center" spacing={8}>
-                  <Grid item xs={2} sm={2} />
+                  <Grid item />
 
                   <Grid
                     item
-                    xs={2}
-                    sm={10}
                     style={{
-                      width: 310,
-                      height: 292,
+                      height: 260,
+                      width: 290,
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center"

@@ -8,6 +8,7 @@ import Typography from "@material-ui/core/Typography";
 
 // components
 import StationsMap from "./StationsMap";
+
 import Row from "./Row";
 
 const styles = theme => ({
@@ -27,10 +28,28 @@ const styles = theme => ({
     fontWeight: "bold",
     letterSpacing: 1,
     textAlign: "center"
+  },
+  formControl: {
+    minWidth: 140,
+    width: "15%",
+    marginleft: 8,
+    marginRight: 8
   }
 });
 
 class App extends Component {
+  state = {
+    isOpen: false
+  };
+
+  handleOpen = () => {
+    this.setState({ isOpen: true });
+  };
+
+  handleClose = () => {
+    this.setState({ isOpen: false });
+  };
+
   render() {
     const { classes } = this.props;
     const {
@@ -44,8 +63,10 @@ class App extends Component {
       <Grid container className={classes.root} spacing={32}>
         <Grid item xs={12} sm={4}>
           <Typography variant="display1" gutterBottom>
-            <div>Viewing Climate Conditions at </div>
-            <div style={{ color: "#843EA4" }}>{station.name}</div>
+            <div>
+              Viewing Climate Conditions at{" "}
+              <span style={{ color: "#843EA4" }}>{station.name}</span>
+            </div>
           </Typography>
 
           <StationsMap />

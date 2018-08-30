@@ -1,61 +1,102 @@
 import { decorate, observable, action, computed, when, reaction } from "mobx";
 import axios from "axios";
-import { jStat } from "jStat";
+// import { jStat } from "jStat";
 import { stations } from "../assets/stationList";
 
 import { determineQuantiles, index, arcData, closest } from "../utils/utils";
 import { format, getMonth } from "date-fns/esm";
 
+// import createHistory from "history/createBrowserHistory";
+// const history = createHistory();
+
 export default class ParamsStore {
+  hash = "nycthr";
+  maxt;
+  mint;
   constructor() {
+    // const query = history.location.hash.slice(1);
+    // const isValidQuery =
+    //   query !== "" && stations.find(stn => stn.sid === query) !== undefined;
+
+    // isValidQuery
+    //   ? when(
+    //       () => true,
+    //       () => {
+    //         this.hash = query;
+    //         this.station = stations.find(stn => stn.sid === query);
+    //       }
+    //     )
+    //   : when(() => true, () => history.push({ hash: `#${this.hash}` }));
+
     when(() => !this.data, () => this.loadObservedData(this.params));
     reaction(() => this.station.sid, () => this.loadObservedData(this.params));
-    // reaction(() => this.data, () => console.log(this.gauge));
+    // reaction(
+    //   () => this.dateOfInterest,
+    //   () => this.loadObservedData(this.params)
+    // );
+    when(
+      () => this.isSummerOrWinter === "summer",
+      () => {
+        this.maxt = 90;
+        this.mint = 65;
+      }
+    );
+    when(
+      () => this.isSummerOrWinter === "winter",
+      () => {
+        this.maxt = 32;
+        this.mint = 20;
+      }
+    );
   }
 
   isLoading = false;
   setIsLoading = d => this.isLoading;
 
-  station = stations[2];
+  station = stations.find(stn => stn.sid === "nycthr");
+
   setStation = d => {
+    // this.hash = d.sid;
+    // history.push({ hash: `#${this.hash}` });
     this.station = d;
-    this.maxt = this.seasonalType[0].range[1];
-    this.mint = this.seasonalType[1].range[0];
-    this.rainfall = this.seasonalType[2].range[0];
-    this.snowfall = this.seasonalType[2].range[0];
+    this.maxt = this.isSummerOrWinter === "summer" ? 90 : 32;
+    this.mint = this.isSummerOrWinter === "summer" ? 65 : 20;
+    this.rainfall = 1;
+    this.snowfall = 2;
   };
 
-  maxt = this.seasonalType[0].range[1];
-  // setMaxt = d => (this.maxt = d);
+  rainfall = 1;
+  snowfall = 2;
 
-  mint = this.seasonalType[1].range[0];
-  // setMint = d => (this.mint = d);
+  dateOfInterest = new Date();
+  setDateOfInterest = d => {
+    this.dateOfInterest = d;
+    this.maxt = this.isSummerOrWinter === "summer" ? 90 : 32;
+    this.mint = this.isSummerOrWinter === "summer" ? 65 : 20;
+  };
 
-  rainfall = this.seasonalType[2].range[0];
-  // setRainfall = d => (this.rainfall = d);
-
-  snowfall = this.seasonalType[2].range[0];
-  // setSnowfall = d => (this.snowfall = d);
+  get month() {
+    return getMonth(this.dateOfInterest) + 1;
+  }
 
   setExtreemeValues = (type, value) => {
     this[type] = value;
   };
+
   // datermines the seasonal extreeme call
   get isSummerOrWinter() {
-    const month = getMonth(new Date()) + 1;
-    return month >= 4 && month <= 10 ? "summer" : "winter";
+    return this.month >= 4 && this.month <= 10 ? "summer" : "winter";
   }
 
   // returns the start of the season
   get season() {
-    const month = getMonth(new Date()) + 1;
-    if (month >= 3 && month <= 5)
+    if (this.month >= 3 && this.month <= 5)
       return { label: "Spring", season_start: "03-01" };
-    if (month >= 6 && month <= 8)
+    if (this.month >= 6 && this.month <= 8)
       return { label: "Summer", season_start: "06-01" };
-    if (month >= 9 && month <= 11)
+    if (this.month >= 9 && this.month <= 11)
       return { label: "Fall", season_start: "09-01" };
-    if (month === 12 || month === 1 || month === 2)
+    if (this.month === 12 || this.month === 1 || this.month === 2)
       return { label: "Winter", season_start: "12-01" };
   }
 
@@ -248,8 +289,8 @@ export default class ParamsStore {
 
     return {
       sid: this.station.sid,
-      sdate: `POR-${format(new Date(), "MM-dd")}`,
-      edate: format(new Date(), "YYYY-MM-dd"),
+      sdate: `POR-${format(this.dateOfInterest, "MM-DD")}`,
+      edate: format(this.dateOfInterest, "YYYY-MM-DD"),
       elems
     };
   }
@@ -274,8 +315,7 @@ export default class ParamsStore {
   };
 
   get seasonalType() {
-    let season = this.isSummerOrWinter;
-    return season === "summer"
+    return this.isSummerOrWinter === "summer"
       ? [
           {
             type: "maxt",
@@ -290,19 +330,19 @@ export default class ParamsStore {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "80 °C"
+                label: "80 °F"
               },
               90: {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "90 °C"
+                label: "90 °F"
               },
               100: {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "100 °C"
+                label: "100 °F"
               }
             }
           },
@@ -319,19 +359,19 @@ export default class ParamsStore {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "65 °C"
+                label: "65 °F"
               },
               70: {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "70 °C"
+                label: "70 °F"
               },
               75: {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "75 °C"
+                label: "75 °F"
               }
             }
           },
@@ -379,19 +419,19 @@ export default class ParamsStore {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "32 °C"
+                label: "32 °F"
               },
               20: {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "20 °C"
+                label: "20 °F"
               },
               15: {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "15 °C"
+                label: "15 °F"
               }
             }
           },
@@ -408,19 +448,19 @@ export default class ParamsStore {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "20 °C"
+                label: "20 °F"
               },
               15: {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "15 °C"
+                label: "15 °F"
               },
               10: {
                 style: {
                   whiteSpace: "nowrap"
                 },
-                label: "10 °C"
+                label: "10 °F"
               }
             }
           },
@@ -485,7 +525,7 @@ export default class ParamsStore {
 
     return {
       tempMonth: {
-        label: format(new Date(), "MMMM"),
+        label: format(this.dateOfInterest, "MMMM"),
         type: "avgTemp",
         isSlider: false
       },
@@ -496,7 +536,7 @@ export default class ParamsStore {
       },
       tempYear: { label: "This Year", type: "avgTemp", isSlider: false },
       pcpnMonth: {
-        label: format(new Date(), "MMMM"),
+        label: format(this.dateOfInterest, "MMMM"),
         type: "avgPcpn",
         isSlider: false
       },
@@ -521,10 +561,10 @@ export default class ParamsStore {
         const isSlider = this.keys[elem].isSlider;
         const dates = this.data.map(d => d[0]);
         const values = this.data.map(
-          d => (d[i + 1] === "T" ? "0.0001" : parseFloat(d[i + 1]).toFixed(1))
+          d => (d[i + 1] === "T" ? 0.0001 : parseFloat(d[i + 1]))
         );
 
-        const original = dates
+        let original = dates
           .map((date, i) => {
             const value = values[i];
             return value === "M" || value === "NaN" ? null : { date, value };
@@ -533,8 +573,10 @@ export default class ParamsStore {
 
         const datesCleaned = original.map(obj => obj.date);
         const valuesCleaned = original.map(obj => obj.value);
+        let quantiles = determineQuantiles(valuesCleaned.slice(0, -1));
 
         let daysAboveThisYear;
+        let mean;
         if (
           type === "maxt" ||
           type === "mint" ||
@@ -542,14 +584,15 @@ export default class ParamsStore {
           type === "snowfall"
         ) {
           daysAboveThisYear = parseFloat(valuesCleaned.slice(-1)[0]).toFixed(0);
+          mean = quantiles["50"].toFixed(0);
         } else if (type === "avgPcpn") {
           daysAboveThisYear = parseFloat(valuesCleaned.slice(-1)[0]).toFixed(2);
+          mean = quantiles["50"].toFixed(2);
         } else {
           daysAboveThisYear = parseFloat(valuesCleaned.slice(-1)[0]).toFixed(1);
+          mean = quantiles["50"].toFixed(1);
         }
 
-        const quantiles = determineQuantiles(valuesCleaned);
-        const mean = jStat.quantiles(valuesCleaned, [0.5])[0].toFixed(1);
         const active = index(daysAboveThisYear, quantiles);
         const gaugeData = arcData(quantiles, type);
         let sliderStyle;
@@ -604,6 +647,7 @@ export default class ParamsStore {
         };
         results.push(p);
       });
+      // console.log(results);
       return results;
     }
   }
@@ -644,10 +688,9 @@ export default class ParamsStore {
 
   get extremeRainSnow() {
     if (this.gauge) {
-      if (this.isSummerOrWinter) {
-        return this.gauge.filter(o => o.elem === `rain${this.rainfall}`);
-      }
-      return this.gauge.filter(o => o.elem === `snow${this.snowfall}`);
+      return this.isSummerOrWinter === "summer"
+        ? this.gauge.filter(o => o.elem === `rain${this.rainfall}`)
+        : this.gauge.filter(o => o.elem === `snow${this.snowfall}`);
     }
   }
 
@@ -666,6 +709,7 @@ decorate(ParamsStore, {
   isLoading: observable,
   setIsLoading: action,
   station: observable,
+  hash: observable,
   setStation: action,
   maxt: observable,
   setMaxt: action,
@@ -688,5 +732,8 @@ decorate(ParamsStore, {
   extremeMaxtT: computed,
   extremeMinT: computed,
   extremeRainSnow: computed,
-  seasonalExtreme: computed
+  seasonalExtreme: computed,
+  dateOfInterest: observable,
+  setDateOfInterest: action,
+  month: computed
 });
